@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Какой сексуальный сценарий управляет тобой?</title>
+<meta name="description" content="Авторский скрининг: узнай, какие сценарии влияют на твоё возбуждение, удовольствие и оргазм.">
+<link rel="preload" href="fonts/CormorantGaramond-normal-500-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Montserrat-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <p class="loading" id="loading">Загрузка…</p>
+
+  <section id="s-start" hidden>
+    <p class="marker" id="start-marker"></p>
+    <h1 id="start-title"></h1>
+    <p class="subtitle" id="start-subtitle"></p>
+    <div class="prose" id="start-texts"></div>
+    <div class="chips" id="start-chips"></div>
+    <blockquote class="accent" id="start-accent"></blockquote>
+    <button class="btn" id="start-btn" type="button"></button>
+    <p class="muted" id="start-instruction"></p>
+  </section>
+
+  <section id="s-question" hidden>
+    <div class="q-top">
+      <span class="muted small" id="q-counter"></span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="q-bar"></i></div>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="q-options"></div>
+    <button class="link-btn" id="q-back" type="button"></button>
+  </section>
+
+  <section id="s-form" hidden>
+    <h2 id="form-title"></h2>
+    <div class="prose" id="form-text"></div>
+    <form id="lead-form" novalidate>
+      <label class="field-label" for="f-name" id="form-name"></label>
+      <input type="text" id="f-name" autocomplete="given-name">
+      <span class="field-label" id="form-channel"></span>
+      <div class="seg" id="f-methods" role="group"></div>
+      <label class="field-label" for="f-contact" id="form-contact"></label>
+      <input type="text" id="f-contact" autocomplete="off">
+      <label class="consent">
+        <input type="checkbox" id="f-consent">
+        <span><span id="form-consent"></span> <a href="#consent" id="form-consent-link"></a></span>
+      </label>
+      <p class="error" id="f-error" role="alert"></p>
+      <button class="btn" type="submit" id="form-btn"></button>
+    </form>
+    <button class="link-btn" id="form-back" type="button"></button>
+  </section>
+
+  <section id="s-result" hidden>
+    <h1 id="r-title"></h1>
+    <div class="prose" id="r-intro"></div>
+    <div id="r-cards"></div>
+    <p class="transition" id="r-transition"></p>
+    <div class="consult" id="consult">
+      <h2 id="c-title"></h2>
+      <div class="prose" id="c-text"></div>
+      <p class="price" id="c-price"></p>
+      <button class="btn" id="c-btn" type="button" aria-expanded="false"></button>
+      <div class="channels" id="c-channels" hidden>
+        <p class="muted small" id="c-choose"></p>
+        <div class="channel-grid" id="c-links"></div>
+      </div>
+    </div>
+    <p class="center"><a class="text-link" id="r-channel" target="_blank" rel="noopener"></a></p>
+    <p class="center"><button class="link-btn" id="r-restart" type="button"></button></p>
+  </section>
+
+  <footer class="footer" id="footer" hidden>
+    <a href="#policy" id="footer-policy"></a>
+    <a href="#consent" id="footer-consent"></a>
+    <span class="muted small" id="footer-copyright"></span>
+  </footer>
+</main>
+
+<div class="doc" id="doc" hidden role="dialog" aria-modal="true" aria-labelledby="doc-title">
+  <div class="doc-inner">
+    <button class="doc-close" id="doc-close" type="button" aria-label="Закрыть">×</button>
+    <h2 id="doc-title"></h2>
+    <div class="prose" id="doc-body"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
