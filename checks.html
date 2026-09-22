@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Проверка алгоритма теста</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+body { margin: 0; background: #f5eee8; color: #2d1f1f; font: 15px/1.5 "Montserrat", Arial, sans-serif; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 32px 18px 60px; }
+h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 34px; color: #6d1f2b; margin: 0 0 10px; }
+p { margin: 0 0 14px; }
+.total { font-weight: 600; font-size: 17px; margin: 18px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid #e4d6cb; padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: #f2e4e1; }
+.ok { color: #2e6b3f; font-weight: 600; }
+.fail { color: #a3362a; font-weight: 600; }
+code { font-family: Consolas, monospace; font-size: 13px; }
+.muted { color: #5f4b46; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Проверка алгоритма теста</h1>
+  <p class="muted">Страница открывает настоящий тест в фоне и прогоняет через его алгоритм контрольные наборы ответов из ТЗ.
+  Ответы задаются так: «вопросы 1–4 = 5 баллов» и т. д., все остальные вопросы — 1 балл.</p>
+  <p class="total" id="total">Выполняется…</p>
+  <table>
+    <thead><tr><th>Что проверяем</th><th>Ответы</th><th>Ожидается</th><th>Получилось</th><th>Итог</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+<iframe id="app" src="index.html" style="width:0;height:0;border:0;position:absolute;left:-9999px" title="тест"></iframe>
+<script>
+const CASES = [
+  { name: "Ни один сценарий не подтверждён — нейтральный результат", answers: { "1-4": 3, "9-11": 3 },
+    expect: ["Нейтральный результат"] },
+  { name: "Пример из ТЗ: 2–2–2–5 не подтверждает сценарий", answers: { "1": 2, "2": 2, "3": 2, "4": 5 },
+    expect: ["Нейтральный результат"] },
+  { name: "Пример из ТЗ: 2–4–4 подтверждает сценарий", answers: { "9": 2, "10": 4, "11": 4 },
+    expect: ["Хорошая девочка"] },
+  { name: "Один явный лидер", answers: { "1-4": 5, "9-11": 3 },
+    expect: ["Я всё контролирую"] },
+  { name: "Отставание ровно на 0,5 — второй сценарий показывается", answers: { "1": 5, "2": 5, "3": 4, "4": 4, "9-11": 4 },
+    expect: ["Я всё контролирую", "Хорошая девочка"] },
+  { name: "Отставание больше 0,5 — второй сценарий не показывается", answers: { "1-4": 5, "9": 4, "10": 4, "11": 3 },
+    expect: ["Я всё контролирую"] },
+  { name: "Подтверждено больше трёх — показываются три лучших", answers: { "1-4": 5, "9": 5, "10": 5, "11": 4, "12": 5, "13": 4, "14": 5, "15-18": 5, "19": 4, "20": 5, "21": 4 },
+    expect: ["Я всё контролирую", "Мне нельзя хотеть слишком сильно", "Хорошая девочка"] },
+  { name: "Полное равенство — порядок из ТЗ", answers: { "1-4": 5, "5-8": 5, "9-11": 5, "12-14": 5 },
+    expect: ["Я всё контролирую", "Оргазм как экзамен (Оба механизма)", "Хорошая девочка"] },
+  { name: "«Оргазм как экзамен»: подтверждён, но подтипа нет — общий вариант", answers: { "5": 4, "6": 2, "7": 4, "8": 2 },
+    expect: ["Оргазм как экзамен"] },
+  { name: "«Оргазм как экзамен»: вопросы 5 и 6 — собственное требование", answers: { "5": 5, "6": 4, "7": 2, "8": 3 },
+    expect: ["Оргазм как экзамен (Собственное требование результата)"] },
+  { name: "«Оргазм как экзамен»: вопросы 7 и 8 — ожидание партнёра", answers: { "5": 2, "6": 3, "7": 5, "8": 4 },
+    expect: ["Оргазм как экзамен (Ожидание результата партнёром)"] },
+  { name: "«Оргазм как экзамен»: оба подтипа", answers: { "5-8": 4 },
+    expect: ["Оргазм как экзамен (Оба механизма)"] },
+  { name: "Вопросы 28–30 не влияют на расчёт", answers: { "28-30": 5 },
+    expect: ["Нейтральный результат"] }
+];
+
+function build(spec, total) {
+  const answers = {};
+  for (let n = 1; n <= total; n++) answers[n] = 1;
+  for (const [range, value] of Object.entries(spec)) {
+    const [from, to] = range.split("-").map(Number);
+    for (let n = from; n <= (to || from); n++) answers[n] = value;
+  }
+  return answers;
+}
+
+function describe(spec) {
+  return Object.entries(spec).map(([r, v]) => `${r.includes("-") ? "вопросы " : "вопрос "}${r} = ${v}`).join("; ") + "; остальные = 1";
+}
+
+document.getElementById("app").addEventListener("load", () => {
+  const app = document.getElementById("app").contentWindow;
+  const content = app.TestApp.content;
+  const total = content.questions.length;
+  const rows = document.getElementById("rows");
+  let passed = 0;
+  CASES.forEach(c => {
+    const got = app.TestApp.resultLabels(app.TestApp.computeResult(content, build(c.answers, total)));
+    const ok = JSON.stringify(got) === JSON.stringify(c.expect);
+    if (ok) passed++;
+    const tr = document.createElement("tr");
+    [c.name, describe(c.answers), c.expect.join(" + "), got.join(" + ")].forEach(text => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      tr.appendChild(td);
+    });
+    const last = document.createElement("td");
+    last.className = ok ? "ok" : "fail";
+    last.textContent = ok ? "совпало" : "не совпало";
+    tr.appendChild(last);
+    rows.appendChild(tr);
+  });
+  document.getElementById("total").textContent =
+    `Совпало ${passed} из ${CASES.length}. Вопросов в тесте: ${total}, сценариев: ${content.scenarios.length}.`;
+});
+</script>
+</body>
+</html>
