@@ -62,7 +62,7 @@ p { margin: 0 0 14px; }
 .field-label { display: block; font-weight: 600; font-size: 15px; margin: 20px 0 8px; }
 input[type=text] { width: 100%; min-height: 52px; padding: 12px 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); font: inherit; color: inherit; }
 input[type=text]:focus { outline: none; border-color: var(--accent); }
-.seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .seg button { min-height: 48px; border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 6px; font: inherit; font-size: 14px; color: inherit; cursor: pointer; }
 .seg button.sel { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 .consent { display: flex; gap: 12px; align-items: flex-start; margin: 22px 0 6px; font-size: 14px; color: var(--muted); cursor: pointer; }
@@ -90,10 +90,8 @@ input[type=text]:focus { outline: none; border-color: var(--accent); }
 .footer { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); text-align: center; font-size: 14px; }
 .footer a { color: var(--muted); }
 
-.doc { position: fixed; inset: 0; background: var(--bg); overflow-y: auto; z-index: 10; }
-.doc-inner { max-width: 680px; margin: 0 auto; padding: 56px 20px 40px; position: relative; }
-.doc-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border: 0; background: none; font-size: 32px; line-height: 1; color: var(--muted); cursor: pointer; }
-.doc h2 { font-size: 30px; padding-right: 36px; }
+#doc h1 { font-size: 30px; margin-bottom: 20px; }
+#doc .prose { margin-bottom: 28px; }
 
 @media (min-width: 640px) {
   .wrap { padding-top: 56px; }
@@ -103,7 +101,7 @@ input[type=text]:focus { outline: none; border-color: var(--accent); }
 @media (max-width: 420px) {
   h1 { font-size: 36px; }
   h2 { font-size: 30px; }
-  .seg { grid-template-columns: repeat(2, 1fr); }
+  .seg button { font-size: 13px; padding: 8px 2px; }
   .channel-grid { grid-template-columns: 1fr; }
   .accent { font-size: 23px; }
 }

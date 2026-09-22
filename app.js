@@ -9,13 +9,12 @@
     telegram: { label: "Telegram", ph: "form.ph_telegram", err: "нужен @username или номер телефона.",
       check: v => /^@?[A-Za-z0-9_]{5,32}$/.test(v) || isPhone(v) },
     whatsapp: { label: "WhatsApp", ph: "form.ph_whatsapp", err: "нужен номер телефона.", check: v => isPhone(v) },
-    vk: { label: "ВКонтакте", ph: "form.ph_vk", err: "укажи ссылку или короткое имя страницы.", check: v => v.length >= 3 },
-    email: { label: "E-mail", ph: "form.ph_email", err: "нужен адрес вида name@example.ru.",
-      check: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) }
+    vk: { label: "ВКонтакте", ph: "form.ph_vk", err: "укажи ссылку или короткое имя страницы.", check: v => v.length >= 3 }
   };
   const CHANNEL_LINKS = [["telegram", "Telegram"], ["whatsapp", "WhatsApp"], ["vk", "ВКонтакте"]];
 
   let C = FALLBACK;
+  let source = "fallback";
   let order = [];
   let answers = {};
   let idx = 0;
@@ -66,38 +65,6 @@
 
   // ── Загрузка контента из Google-таблицы ──
 
-  function parseCSV(text) {
-    const rows = [];
-    let row = [], field = "", quoted = false;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (quoted) {
-        if (ch === '"') {
-          if (text[i + 1] === '"') { field += '"'; i++; } else quoted = false;
-        } else field += ch;
-      } else if (ch === '"') quoted = true;
-      else if (ch === ",") { row.push(field); field = ""; }
-      else if (ch === "\n" || ch === "\r") {
-        if (ch === "\r" && text[i + 1] === "\n") i++;
-        row.push(field); rows.push(row); row = []; field = "";
-      } else field += ch;
-    }
-    if (field !== "" || row.length) { row.push(field); rows.push(row); }
-    if (!rows.length) return [];
-    const keys = rows[0].map(h => h.trim());
-    return rows.slice(1)
-      .filter(r => r.some(v => v.trim() !== ""))
-      .map(r => Object.fromEntries(keys.map((k, i) => [k, (r[i] || "").trim()])));
-  }
-
-  async function fetchSheet(name, signal) {
-    const url = "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(CFG.sheetId) +
-      "/gviz/tq?tqx=out:csv&headers=1&sheet=" + encodeURIComponent(name);
-    const res = await fetch(url, { signal, cache: "no-store" });
-    if (!res.ok) throw new Error(name + ": HTTP " + res.status);
-    return parseCSV(await res.text());
-  }
-
   const num = v => {
     const n = parseFloat(String(v).replace(/\s/g, "").replace(",", "."));
     return Number.isFinite(n) ? n : null;
@@ -133,19 +100,20 @@
   }
 
   async function loadContent() {
-    if (!CFG.sheetId) return FALLBACK;
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), CFG.sheetTimeoutMs || 5000);
+    if (!CFG.sheetId) {
+      source = "config";
+      return FALLBACK;
+    }
     try {
-      const entries = await Promise.all(Object.entries(SHEETS).map(async ([k, name]) => [k, await fetchSheet(name, ctrl.signal)]));
-      const content = fromSheets(Object.fromEntries(entries));
+      const data = await window.SheetLoader.fetchSheets(CFG.sheetId, SHEETS, CFG.sheetTimeoutMs);
+      const content = fromSheets(data);
       if (!content.questions.length || !content.scenarios.length) throw new Error("в таблице нет вопросов или сценариев");
+      source = "sheet";
       return content;
     } catch (e) {
       console.warn("Контент из Google-таблицы не загружен, используется встроенный:", e);
+      source = "fallback";
       return FALLBACK;
-    } finally {
-      clearTimeout(timer);
     }
   }
 
@@ -364,37 +332,22 @@
     $("#r-restart").parentElement.hidden = isBlank(t("result.restart"));
   }
 
-  function submitLead(payload) {
-    if (!CFG.submitUrl) return;
-    fetch(CFG.submitUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload),
-      keepalive: true
-    }).catch(e => console.warn("Заявка не отправлена:", e));
-  }
-
-  // ── Политика и согласие ──
-
-  function openDoc(kind) {
-    const title = t(kind === "policy" ? "footer.policy" : "footer.consent");
-    const body = t(kind === "policy" ? "legal.policy" : "legal.consent");
-    $("#doc-title").textContent = title;
-    fill($("#doc-body"), isBlank(body) ? "Текст будет добавлен в ближайшее время." : body);
-    $("#doc").hidden = false;
-    document.body.style.overflow = "hidden";
-    $("#doc-close").focus();
-  }
-
-  function closeDoc() {
-    $("#doc").hidden = true;
-    document.body.style.overflow = "";
-  }
-
-  function syncHash() {
-    const h = location.hash.replace("#", "");
-    if (h === "policy" || h === "consent") openDoc(h);
-    else closeDoc();
+  async function submitLead(payload) {
+    if (!CFG.submitUrl) {
+      console.warn("Адрес хранилища не задан — заявка не отправлена (демо-режим).");
+      return true;
+    }
+    try {
+      const res = await fetch(CFG.submitUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn("Заявка не отправлена:", e);
+      return false;
+    }
   }
 
   // ── События ──
@@ -422,12 +375,11 @@
     });
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape" && !$("#doc").hidden) { history.replaceState(null, "", location.pathname + location.search); closeDoc(); return; }
       if ($("#s-question").hidden || e.target.tagName === "INPUT") return;
       if (e.key >= "1" && e.key <= "5") choose(Number(e.key));
     });
 
-    $("#lead-form").addEventListener("submit", e => {
+    $("#lead-form").addEventListener("submit", async e => {
       e.preventDefault();
       const name = $("#f-name").value.trim();
       const contact = $("#f-contact").value.trim();
@@ -438,8 +390,13 @@
       $("#f-error").textContent = err;
       if (err) return;
 
+      const btn = $("#form-btn");
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = t("form.sending") || "Отправляем…";
+
       const r = computeResult(C, answers);
-      submitLead({
+      const sent = await submitLead({
         date: new Date().toISOString(),
         name,
         channel: METHODS[method].label,
@@ -447,6 +404,14 @@
         scenarios: resultLabels(r),
         consent: true
       });
+
+      btn.disabled = false;
+      btn.textContent = label;
+      if (!sent) {
+        $("#f-error").textContent = t("form.error") ||
+          "Не удалось отправить заявку. Проверь подключение к интернету и попробуй ещё раз.";
+        return;
+      }
       renderResult(r);
       show("#s-result");
     });
@@ -464,11 +429,6 @@
       show("#s-start");
     });
 
-    $("#doc-close").addEventListener("click", () => {
-      history.replaceState(null, "", location.pathname + location.search);
-      closeDoc();
-    });
-    window.addEventListener("hashchange", syncHash);
   }
 
   async function init() {
@@ -477,9 +437,13 @@
     renderStatic();
     bind();
     show("#s-start");
-    syncHash();
   }
 
-  window.TestApp = { computeResult, resultLabels, parseCSV, fromSheets, get content() { return C; } };
-  init();
+  const ready = init();
+
+  window.TestApp = {
+    computeResult, resultLabels, fromSheets, ready,
+    get content() { return C; },
+    get source() { return source; }
+  };
 })();

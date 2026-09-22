@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Проверка алгоритма теста</title>
-<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="fonts.css?v=202609230021">
+<script src="config.js?v=202609230021"></script>
 <style>
 body { margin: 0; background: #f5eee8; color: #2d1f1f; font: 15px/1.5 "Montserrat", Arial, sans-serif; }
 .wrap { max-width: 900px; margin: 0 auto; padding: 32px 18px 60px; }
@@ -26,6 +27,7 @@ code { font-family: Consolas, monospace; font-size: 13px; }
   <h1>Проверка алгоритма теста</h1>
   <p class="muted">Страница открывает настоящий тест в фоне и прогоняет через его алгоритм контрольные наборы ответов из ТЗ.
   Ответы задаются так: «вопросы 1–4 = 5 баллов» и т. д., все остальные вопросы — 1 балл.</p>
+  <p id="source" class="muted">Проверяется источник контента…</p>
   <p class="total" id="total">Выполняется…</p>
   <table>
     <thead><tr><th>Что проверяем</th><th>Ответы</th><th>Ожидается</th><th>Получилось</th><th>Итог</th></tr></thead>
@@ -77,9 +79,21 @@ function describe(spec) {
   return Object.entries(spec).map(([r, v]) => `${r.includes("-") ? "вопросы " : "вопрос "}${r} = ${v}`).join("; ") + "; остальные = 1";
 }
 
-document.getElementById("app").addEventListener("load", () => {
+document.getElementById("app").addEventListener("load", async () => {
   const app = document.getElementById("app").contentWindow;
+  await app.TestApp.ready;
   const content = app.TestApp.content;
+  const source = app.TestApp.source;
+  const note = document.getElementById("source");
+  if (source === "sheet") {
+    note.className = "ok";
+    note.textContent = "Вопросы и настройки взяты из Google-таблицы — проверяется актуальная версия теста.";
+  } else {
+    note.className = "fail";
+    note.textContent = source === "config"
+      ? "Google-таблица не подключена в настройках — проверяется встроенная копия теста."
+      : "Google-таблица не загрузилась, проверяется встроенная резервная копия. Обновите страницу.";
+  }
   const total = content.questions.length;
   const rows = document.getElementById("rows");
   let passed = 0;

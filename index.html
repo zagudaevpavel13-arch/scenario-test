@@ -7,8 +7,8 @@
 <meta name="description" content="Авторский скрининг: узнай, какие сценарии влияют на твоё возбуждение, удовольствие и оргазм.">
 <link rel="preload" href="fonts/CormorantGaramond-normal-500-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Montserrat-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="fonts.css?v=202609222244">
-<link rel="stylesheet" href="style.css?v=202609222244">
+<link rel="stylesheet" href="fonts.css?v=202609230021">
+<link rel="stylesheet" href="style.css?v=202609230021">
 </head>
 <body>
 <main class="wrap">
@@ -47,7 +47,7 @@
       <input type="text" id="f-contact" autocomplete="off">
       <label class="consent">
         <input type="checkbox" id="f-consent">
-        <span><span id="form-consent"></span> <a href="#consent" id="form-consent-link"></a></span>
+        <span><span id="form-consent"></span> <a href="consent.html" target="_blank" rel="noopener" id="form-consent-link"></a></span>
       </label>
       <p class="error" id="f-error" role="alert"></p>
       <button class="btn" type="submit" id="form-btn"></button>
@@ -75,22 +75,15 @@
   </section>
 
   <footer class="footer" id="footer" hidden>
-    <a href="#policy" id="footer-policy"></a>
-    <a href="#consent" id="footer-consent"></a>
+    <a href="policy.html" target="_blank" rel="noopener" id="footer-policy"></a>
+    <a href="consent.html" target="_blank" rel="noopener" id="footer-consent"></a>
     <span class="muted small" id="footer-copyright"></span>
   </footer>
 </main>
 
-<div class="doc" id="doc" hidden role="dialog" aria-modal="true" aria-labelledby="doc-title">
-  <div class="doc-inner">
-    <button class="doc-close" id="doc-close" type="button" aria-label="Закрыть">×</button>
-    <h2 id="doc-title"></h2>
-    <div class="prose" id="doc-body"></div>
-  </div>
-</div>
-
-<script src="config.js?v=202609222244"></script>
-<script src="content.js?v=202609222244"></script>
-<script src="app.js?v=202609222244"></script>
+<script src="config.js?v=202609230021"></script>
+<script src="content.js?v=202609230021"></script>
+<script src="sheet.js?v=202609230021"></script>
+<script src="app.js?v=202609230021"></script>
 </body>
 </html>
