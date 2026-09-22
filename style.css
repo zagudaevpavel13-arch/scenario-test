@@ -15,7 +15,7 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.6 var(--sans); }
+body { margin: 0; background: var(--bg); color: var(--text); font: 500 17px/1.6 var(--sans); }
 .wrap { max-width: 580px; margin: 0 auto; padding: 36px 20px 28px; }
 [hidden] { display: none !important; }
 
@@ -51,7 +51,7 @@ p { margin: 0 0 14px; }
 
 .progress { height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 10px 0 30px; }
 .progress > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
-.q-text { font-family: var(--serif); font-size: 27px; font-weight: 500; line-height: 1.3; margin-bottom: 26px; min-height: 3.9em; }
+.q-text { font-family: var(--serif); font-size: 28px; font-weight: 600; line-height: 1.3; margin-bottom: 26px; min-height: 3.9em; }
 .options { display: grid; gap: 10px; margin-bottom: 14px; }
 .opt { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 16px; font: inherit; color: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
 .opt:hover { border-color: var(--accent); }
