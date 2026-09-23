@@ -208,7 +208,7 @@
   // ── Экраны ──
 
   function show(id) {
-    ["#s-start", "#s-question", "#s-form", "#s-result"].forEach(s => { $(s).hidden = s !== id; });
+    ["#s-age", "#s-start", "#s-question", "#s-form", "#s-result"].forEach(s => { $(s).hidden = s !== id; });
     $("#loading").hidden = true;
     $("#footer").hidden = false;
     window.scrollTo(0, 0);
@@ -216,6 +216,12 @@
 
   function renderStatic() {
     document.title = t("start.title") || document.title;
+    setText("#age-badge", "age.badge");
+    setText("#age-title", "age.title");
+    fill($("#age-text"), t("age.text"));
+    $("#age-yes").textContent = t("age.yes");
+    $("#age-no").textContent = t("age.no");
+    $("#age-denied").textContent = t("age.denied");
     setText("#start-marker", "start.marker");
     setText("#start-title", "start.title");
     setText("#start-subtitle", "start.subtitle");
@@ -383,6 +389,14 @@
   // ── События ──
 
   function bind() {
+    $("#age-yes").addEventListener("click", () => show("#s-start"));
+
+    $("#age-no").addEventListener("click", () => {
+      $("#age-ask").hidden = true;
+      $("#age-denied").hidden = isBlank(t("age.denied"));
+      window.scrollTo(0, 0);
+    });
+
     $("#start-btn").addEventListener("click", () => {
       idx = 0;
       renderQuestion();
@@ -466,7 +480,7 @@
     order = C.questions.slice().sort((a, b) => a.n - b.n);
     renderStatic();
     bind();
-    show("#s-start");
+    show("#s-age");
   }
 
   const ready = init();

@@ -45,6 +45,13 @@ p { margin: 0 0 14px; }
 .btn:focus-visible, .opt:focus-visible, .seg button:focus-visible, .link-btn:focus-visible, a:focus-visible { outline: 3px solid rgba(109, 31, 43, .35); outline-offset: 2px; }
 #start-btn + .muted { margin-top: 18px; font-size: 15px; }
 
+.age-badge { display: inline-block; margin: 0 0 20px; padding: 8px 16px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 17px; font-weight: 700; letter-spacing: .06em; }
+#age-text { color: #3f2e2b; }
+#age-ask { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+.btn.ghost { background: transparent; color: var(--accent); border: 2px solid var(--line); }
+.btn.ghost:hover { background: var(--accent-soft); }
+.age-denied { margin-top: 28px; padding: 18px 20px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; color: var(--muted); }
+
 .link-btn { appearance: none; border: 0; background: none; color: var(--muted); font: inherit; font-size: 15px; padding: 10px 0; cursor: pointer; }
 .link-btn:hover { color: var(--text); }
 .text-link { color: var(--accent); font-weight: 500; }

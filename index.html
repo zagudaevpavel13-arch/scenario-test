@@ -7,12 +7,23 @@
 <meta name="description" content="Авторский скрининг: узнай, какие сценарии влияют на твоё возбуждение, удовольствие и оргазм.">
 <link rel="preload" href="fonts/CormorantGaramond-normal-500-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/Montserrat-normal-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="fonts.css?v=202609231939">
-<link rel="stylesheet" href="style.css?v=202609231939">
+<link rel="stylesheet" href="fonts.css?v=202609232202">
+<link rel="stylesheet" href="style.css?v=202609232202">
 </head>
 <body>
 <main class="wrap">
   <p class="loading" id="loading">Загрузка…</p>
+
+  <section id="s-age" hidden>
+    <p class="age-badge" id="age-badge"></p>
+    <h1 id="age-title"></h1>
+    <div class="prose" id="age-text"></div>
+    <div id="age-ask">
+      <button class="btn" id="age-yes" type="button"></button>
+      <button class="btn ghost" id="age-no" type="button"></button>
+    </div>
+    <p class="age-denied" id="age-denied" hidden role="alert"></p>
+  </section>
 
   <section id="s-start" hidden>
     <p class="marker" id="start-marker"></p>
@@ -81,9 +92,9 @@
   </footer>
 </main>
 
-<script src="config.js?v=202609231939"></script>
-<script src="content.js?v=202609231939"></script>
-<script src="sheet.js?v=202609231939"></script>
-<script src="app.js?v=202609231939"></script>
+<script src="config.js?v=202609232202"></script>
+<script src="content.js?v=202609232202"></script>
+<script src="sheet.js?v=202609232202"></script>
+<script src="app.js?v=202609232202"></script>
 </body>
 </html>
