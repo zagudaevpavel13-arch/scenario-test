@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Проверка алгоритма теста</title>
-<link rel="stylesheet" href="fonts.css?v=202609230021">
-<script src="config.js?v=202609230021"></script>
+<link rel="stylesheet" href="fonts.css?v=202609231939">
+<script src="config.js?v=202609231939"></script>
 <style>
 body { margin: 0; background: #f5eee8; color: #2d1f1f; font: 15px/1.5 "Montserrat", Arial, sans-serif; }
 .wrap { max-width: 900px; margin: 0 auto; padding: 32px 18px 60px; }
 h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 34px; color: #6d1f2b; margin: 0 0 10px; }
+h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 26px; color: #6d1f2b; margin: 36px 0 8px; }
 p { margin: 0 0 14px; }
 .total { font-weight: 600; font-size: 17px; margin: 18px 0; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
@@ -30,8 +31,16 @@ code { font-family: Consolas, monospace; font-size: 13px; }
   <p id="source" class="muted">Проверяется источник контента…</p>
   <p class="total" id="total">Выполняется…</p>
   <table>
-    <thead><tr><th>Что проверяем</th><th>Ответы</th><th>Ожидается</th><th>Получилось</th><th>Итог</th></tr></thead>
+    <thead><tr><th>Что проверяем</th><th>Ответы</th><th>Ожидается</th><th>Получилось</th><th>Уйдёт в заявку</th><th>Итог</th></tr></thead>
     <tbody id="rows"></tbody>
+  </table>
+
+  <h2>Какие коды сохраняются в заявке</h2>
+  <p class="muted">В хранилище уходит только код — названия сценариев там не появляются.
+  Эта таблица строится из вашей Google-таблицы, столбец «Код» на листах «Сценарии» и «Варианты».</p>
+  <table>
+    <thead><tr><th>Код</th><th>Что он означает</th></tr></thead>
+    <tbody id="codes"></tbody>
   </table>
 </div>
 <iframe id="app" src="index.html" style="width:0;height:0;border:0;position:absolute;left:-9999px" title="тест"></iframe>
@@ -102,7 +111,8 @@ document.getElementById("app").addEventListener("load", async () => {
     const ok = JSON.stringify(got) === JSON.stringify(c.expect);
     if (ok) passed++;
     const tr = document.createElement("tr");
-    [c.name, describe(c.answers), c.expect.join(" + "), got.join(" + ")].forEach(text => {
+    const codes = app.TestApp.resultCodes(app.TestApp.computeResult(content, build(c.answers, total)));
+    [c.name, describe(c.answers), c.expect.join(" + "), got.join(" + "), codes.join("; ")].forEach(text => {
       const td = document.createElement("td");
       td.textContent = text;
       tr.appendChild(td);
@@ -113,6 +123,23 @@ document.getElementById("app").addEventListener("load", async () => {
     tr.appendChild(last);
     rows.appendChild(tr);
   });
+  const codeRows = document.getElementById("codes");
+  const codeList = [["0", "Нейтральный результат — ни один сценарий не подтверждён"]];
+  content.scenarios.forEach(sc => {
+    const vs = content.variants.filter(v => v.scenario === sc.name);
+    if (!vs.length) codeList.push([sc.code, sc.name]);
+    else vs.forEach(v => codeList.push([v.code, sc.name + (v.type === "общий" ? "" : " — " + v.name)]));
+  });
+  codeList.forEach(([code, label]) => {
+    const tr = document.createElement("tr");
+    const c1 = document.createElement("td");
+    c1.innerHTML = "<code>" + code + "</code>";
+    const c2 = document.createElement("td");
+    c2.textContent = label;
+    tr.append(c1, c2);
+    codeRows.appendChild(tr);
+  });
+
   document.getElementById("total").textContent =
     `Совпало ${passed} из ${CASES.length}. Вопросов в тесте: ${total}, сценариев: ${content.scenarios.length}.`;
 });

@@ -12,6 +12,7 @@
     vk: { label: "ВКонтакте", ph: "form.ph_vk", err: "укажи ссылку или короткое имя страницы.", check: v => v.length >= 3 }
   };
   const CHANNEL_LINKS = [["telegram", "Telegram"], ["whatsapp", "WhatsApp"], ["vk", "ВКонтакте"]];
+  const NEUTRAL_CODE = "0";
 
   let C = FALLBACK;
   let source = "fallback";
@@ -79,11 +80,13 @@
         weight: scored ? (w == null ? 1 : w) : 0, reverse: yes(r["Обратный вопрос"]), scored };
     }).filter(q => q.n != null && q.text);
     const scenarios = s.scenarios.map((r, i) => ({
-      order: num(r["Порядок"]) ?? i + 1, name: r["Сценарий"], program: r["Внутренняя программа"], focus: r["Фокус"],
+      order: num(r["Порядок"]) ?? i + 1, code: String(r["Код"] || "").trim(),
+      name: r["Сценарий"], program: r["Внутренняя программа"], focus: r["Фокус"],
       explanation: r["Короткое объяснение"], question: r["Вопрос для размышления"]
     })).filter(x => x.name);
     const variants = s.variants.map(r => ({
-      scenario: r["Сценарий"], name: r["Вариант"], type: String(r["Тип"] || "").trim().toLowerCase(),
+      scenario: r["Сценарий"], name: r["Вариант"], code: String(r["Код"] || "").trim(),
+      type: String(r["Тип"] || "").trim().toLowerCase(),
       questions: String(r["Вопросы"] || "").split(/\D+/).map(Number).filter(Boolean),
       program: r["Внутренняя программа"], focus: r["Фокус"], explanation: r["Короткое объяснение"],
       question: r["Вопрос для размышления"]
@@ -92,11 +95,33 @@
     s.texts.forEach(r => { if (r["Ключ"]) texts[r["Ключ"]] = r["Текст"] || ""; });
     const settings = {};
     s.settings.forEach(r => { const v = num(r["Значение"]); if (r["Ключ"] && v != null) settings[r["Ключ"]] = v; });
-    return {
+    return assignCodes({
       settings: Object.assign({}, FALLBACK.settings, settings),
       questions, scenarios, variants,
       texts: Object.assign({}, FALLBACK.texts, texts)
-    };
+    });
+  }
+
+  // Код сценария заменяет название в заявке: в хранилище уходит «3», а не «Хорошая девочка».
+  // Код можно задать в столбце «Код» таблицы, иначе он берётся из столбца «Порядок».
+  function assignCodes(c) {
+    const byName = new Map();
+    c.scenarios.forEach((sc, i) => {
+      sc.code = String(sc.code || sc.order || i + 1).trim();
+      byName.set(sc.name, sc);
+    });
+    const seen = new Map();
+    c.variants.forEach(v => {
+      const root = (byName.get(v.scenario) || {}).code || "?";
+      if (v.type === "общий") {
+        v.code = String(v.code || root).trim();
+        return;
+      }
+      const n = (seen.get(v.scenario) || 0) + 1;
+      seen.set(v.scenario, n);
+      v.code = String(v.code || root + "." + n).trim();
+    });
+    return c;
   }
 
   async function loadContent() {
@@ -168,6 +193,11 @@
     if (hits.length === 1) return hits[0];
     if (hits.length > 1) return vs.find(v => v.type === "все подтипы") || hits[0];
     return vs.find(v => v.type === "общий") || null;
+  }
+
+  function resultCodes(r) {
+    if (r.neutral) return [NEUTRAL_CODE];
+    return r.shown.map(s => (s.variant && s.variant.code) || s.sc.code || "");
   }
 
   function resultLabels(r) {
@@ -401,7 +431,7 @@
         name,
         channel: METHODS[method].label,
         contact,
-        scenarios: resultLabels(r),
+        scenarios: resultCodes(r),
         consent: true
       });
 
@@ -432,7 +462,7 @@
   }
 
   async function init() {
-    C = await loadContent();
+    C = assignCodes(await loadContent());
     order = C.questions.slice().sort((a, b) => a.n - b.n);
     renderStatic();
     bind();
@@ -442,7 +472,7 @@
   const ready = init();
 
   window.TestApp = {
-    computeResult, resultLabels, fromSheets, ready,
+    computeResult, resultLabels, resultCodes, fromSheets, ready,
     get content() { return C; },
     get source() { return source; }
   };
