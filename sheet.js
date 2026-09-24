@@ -20,7 +20,7 @@ window.SheetLoader = (function () {
     }
     if (field !== "" || row.length) { row.push(field); rows.push(row); }
     if (!rows.length) return [];
-    const keys = rows[0].map(h => h.trim());
+    const keys = rows[0].map(h => h.split(/\r?\n/)[0].trim());
     return rows.slice(1)
       .filter(r => r.some(v => v.trim() !== ""))
       .map(r => Object.fromEntries(keys.map((k, i) => [k, (r[i] || "").trim()])));

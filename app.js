@@ -92,7 +92,13 @@
       question: r["Вопрос для размышления"]
     })).filter(v => v.scenario && v.name);
     const texts = {};
-    s.texts.forEach(r => { if (r["Ключ"]) texts[r["Ключ"]] = r["Текст"] || ""; });
+    let filled = 0;
+    s.texts.forEach(r => {
+      if (!r["Ключ"]) return;
+      texts[r["Ключ"]] = r["Текст"] || "";
+      if (texts[r["Ключ"]].trim()) filled++;
+    });
+    if (s.texts.length && !filled) throw new Error("в таблице не прочитался ни один текст");
     const settings = {};
     s.settings.forEach(r => { const v = num(r["Значение"]); if (r["Ключ"] && v != null) settings[r["Ключ"]] = v; });
     return assignCodes({
